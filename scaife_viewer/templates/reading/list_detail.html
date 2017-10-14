@@ -1,0 +1,22 @@
+{% extends "site_base.html" %}
+
+{% load i18n tz %}
+
+{% block head_title %}{{ reading_list.name }}{% endblock %}
+
+{% block body_class %}reading-logs{% endblock %}
+
+{% block body %}
+  <h2>{{ reading_list.name }}</h2>
+
+  {% for entry in entries %}
+    <div>
+      <a href="{% url 'reader' entry.urn %}">
+        {{ entry.textgroup_label }},
+        {{ entry.work_label }}
+        {% if entry.reference %}{{ entry.reference }}{% endif %}
+        ({{ entry.lang }})
+      </a>
+    </div>
+  {% endfor %}
+{% endblock %}

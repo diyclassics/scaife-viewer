@@ -24,7 +24,7 @@ def metadata(urn):
         "textgroup_label": str(parents[1].get_label()),
         "work_label": str(parents[0].get_label()),
         "version_label": str(passage.metadata.get_label()),
-        "reference": str(passage.reference).replace("-", "–"),
+        "reference": str(passage.reference).replace("-", "–") if passage.reference else None,
         "lang": passage.lang,
     }
 
@@ -42,3 +42,18 @@ def recent(user, limit=5):
             }
             for row in cursor.fetchall()
         ]
+
+
+class ReadingList(models.Model):
+    # @@@ we could use pinax teams and support membership, invitations,
+    # @@@ permissions, etc
+    owner = models.ForeignKey(User)
+    name = models.CharField(max_length=100)  # @@@ should this be unique?
+
+
+class ReadingListEntry(models.Model):
+    reading_list = models.ForeignKey(ReadingList, on_delete=models.CASCADE, related_name="entries")
+    urn = models.CharField(max_length=250)
+
+    class Meta:
+        order_with_respect_to = "reading_list"
