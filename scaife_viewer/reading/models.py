@@ -17,15 +17,18 @@ class ReadingLog(models.Model):
 
 
 def metadata(urn):
-    passage = cts.passage(urn)
-    parents = list(passage.text.ancestors())
-    return {
-        "textgroup_label": str(parents[1].label),
-        "work_label": str(parents[0].label),
-        "version_label": str(passage.text.label),
-        "reference": str(passage.reference).replace("-", "–"),
-        "lang": passage.text.lang,
-    }
+    try:
+        passage = cts.passage(urn)
+        parents = list(passage.text.ancestors())
+        return {
+            "textgroup_label": str(parents[1].label),
+            "work_label": str(parents[0].label),
+            "version_label": str(passage.text.label),
+            "reference": str(passage.reference).replace("-", "–"),
+            "lang": passage.text.lang,
+        }
+    except ValueError:
+        return {}
 
 
 def recent(user, limit=5):
