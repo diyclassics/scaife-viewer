@@ -27,7 +27,7 @@ class RefTree:
         self.ancestor_cache = {}
         self.num_resolver = anytree.Resolver("num")
 
-    def add(self, reff):
+    def add(self, reff, first=False, last=False):
         # zip together the citation labels with the reff:
         #   citations = ["book", "line"]
         #   reff = "1.2"
@@ -55,7 +55,11 @@ class RefTree:
         else:
             parent = self.root
         # create leaf ref
-        RefNode(label=leaf[0], num=leaf[1], parent=parent)
+        node = RefNode(label=leaf[0], num=leaf[1], parent=parent)
+        if first:
+            self.first = node
+        if last:
+            self.last = node
 
     def lookup(self, path):
         return self.num_resolver.get(self.root, path)

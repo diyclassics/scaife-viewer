@@ -3,6 +3,7 @@ from functools import lru_cache
 import anytree
 from lxml import etree
 from MyCapytain.common.constants import Mimetypes
+from MyCapytain.common.reference import Reference
 
 from .capitains import default_resolver
 from .reference import URN
@@ -10,8 +11,12 @@ from .reference import URN
 
 class Passage:
 
-    def __init__(self, text, reference):
+    def __init__(self, text, reference=None):
         self.text = text
+        self.whole_text = reference is None
+        if self.whole_text:
+            toc = self.text.toc()
+            reference = Reference(f"{toc.first}-{toc.last}")
         self.reference = reference
 
     def __repr__(self):
@@ -35,7 +40,10 @@ class Passage:
 
     @property
     def urn(self):
-        return URN(f"{self.text.urn}:{self.reference}")
+        if self.whole_text:
+            return self.text.urn
+        else:
+            return URN(f"{self.text.urn}:{self.reference}")
 
     @property
     def lsb(self):
@@ -43,8 +51,12 @@ class Passage:
 
     @lru_cache()
     def textual_node(self):
-        # MyCapytain bug: local resolver getTextualNode can't take a Reference
-        return default_resolver().getTextualNode(self.text.urn, subreference=str(self.reference))
+        resolver = default_resolver()
+        if self.whole_text:
+            return resolver.getTextualNode(self.text.urn)
+        else:
+            # MyCapytain bug: local resolver getTextualNode can't take a Reference
+            return resolver.getTextualNode(self.text.urn, subreference=str(self.reference))
 
     @property
     def refs(self):
@@ -60,11 +72,15 @@ class Passage:
         return self.textual_node().export(Mimetypes.PLAINTEXT)
 
     def next(self):
+        if self.whole_text:
+            return None
         reference = self.textual_node().nextId
         if reference:
             return Passage(self.text, reference)
 
     def prev(self):
+        if self.whole_text:
+            return None
         reference = self.textual_node().prevId
         if reference:
             return Passage(self.text, reference)

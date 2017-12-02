@@ -24,11 +24,15 @@ def collection(urn: str) -> Collection:
 def passage(urn: str) -> Passage:
     urn = URN(urn)
     if urn.reference is None:
-        raise ValueError("URN must contain a reference")
-    reference = urn.reference
-    urn = urn.upTo(URN.NO_PASSAGE)
-    text = collection(urn)
-    passage = Passage(text, reference)
+        reference = None
+        text = collection(str(urn))
+        if not isinstance(text, Text):
+            raise ValueError("urn must be a text or contain a reference")
+    else:
+        reference = urn.reference
+        urn = urn.upTo(URN.NO_PASSAGE)
+        text = collection(urn)
+    passage = Passage(text, reference=reference)
     if not passage.exists():
         raise PassageDoesNotExist(text, f"{reference} does not exist in {urn}")
     return passage

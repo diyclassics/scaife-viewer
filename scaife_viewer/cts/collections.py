@@ -152,14 +152,27 @@ class Text(Collection):
         citation = self.metadata.citation
         depth = len(citation)
         tree = RefTree(self.urn, citation)
-        for reff in default_resolver().getReffs(self.urn, level=depth):
-            tree.add(reff)
+        first = True
+        for reff, has_more in lookahead(default_resolver().getReffs(self.urn, level=depth)):
+            last = not has_more
+            tree.add(reff, first, last)
+            if first:
+                first = False
         return tree
 
     def first_passage(self):
         chunk = next(self.toc().chunks(), None)
         if chunk is not None:
             return Passage(self, URN(chunk.urn).reference)
+
+
+def lookahead(iterable):
+    it = iter(iterable)
+    last = next(it)
+    for item in it:
+        yield last, True
+        last = item
+    yield last, False
 
 
 def resolve_collection(type_uri):
